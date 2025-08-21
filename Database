@@ -1,0 +1,75 @@
+-- Drop tables if they already exist (for clean re-run)
+DROP TABLE IF EXISTS Exercise CASCADE;
+DROP TABLE IF EXISTS Workout CASCADE;
+DROP TABLE IF EXISTS Goal CASCADE;
+DROP TABLE IF EXISTS Friend CASCADE;
+DROP TABLE IF EXISTS "User" CASCADE;
+
+-- 1. User Table
+CREATE TABLE "User" (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    weight DECIMAL(5,2)
+);
+
+-- 2. Friend Connections (Self-Join)
+-- Each row means: user_id has a friend_id as a friend
+CREATE TABLE Friend (
+    friend_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    friend_user_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+);
+
+-- 3. Workout Table
+CREATE TABLE Workout (
+    workout_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    workout_date DATE NOT NULL,
+    duration_minutes INT CHECK (duration_minutes > 0),
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+);
+
+-- 4. Exercise Table (linked to a workout)
+CREATE TABLE Exercise (
+    exercise_id SERIAL PRIMARY KEY,
+    workout_id INT NOT NULL,
+    exercise_name VARCHAR(100) NOT NULL,
+    sets INT CHECK (sets > 0),
+    reps INT CHECK (reps > 0),
+    weight DECIMAL(6,2) CHECK (weight >= 0),
+    FOREIGN KEY (workout_id) REFERENCES Workout(workout_id) ON DELETE CASCADE
+);
+
+-- 5. Goal Table
+CREATE TABLE Goal (
+    goal_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    description TEXT NOT NULL,
+    target_value INT NOT NULL,
+    current_value INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+);
+
+-- Insert sample data for testing
+INSERT INTO "User" (name, email, weight) VALUES
+('Tanul Mishra', 'tanul@example.com', 70.5),
+('Vedika Rastogi', 'vedika@example.com', 55.2);
+
+INSERT INTO Friend (user_id, friend_user_id) VALUES
+(1, 2), (2, 1);
+
+INSERT INTO Workout (user_id, workout_date, duration_minutes) VALUES
+(1, '2025-08-20', 60),
+(2, '2025-08-20', 45);
+
+INSERT INTO Exercise (workout_id, exercise_name, sets, reps, weight) VALUES
+(1, 'Bench Press', 4, 10, 50),
+(1, 'Squats', 3, 12, 70),
+(2, 'Deadlift', 3, 8, 60);
+
+INSERT INTO Goal (user_id, description, target_value, current_value) VALUES
+(1, 'Workout 5 times a week', 5, 2),
+(2, 'Run 10 km weekly', 10, 4);
