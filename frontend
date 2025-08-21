@@ -1,0 +1,32 @@
+# frontend/app.py
+import streamlit as st
+import psycopg2
+
+st.title("🏋️ Fitness Tracker")
+
+# Connect to PostgreSQL
+conn = psycopg2.connect(
+    host="localhost",
+    database="Fitness tracker",
+    user="postgres",
+    password="Asdfghjkl@2107"
+)
+cursor = conn.cursor()
+
+# Add User
+st.header("Add User")
+name = st.text_input("Name")
+email = st.text_input("Email")
+weight = st.number_input("Weight (kg)", min_value=1.0, format="%.2f")
+
+if st.button("Save User"):
+    cursor.execute("INSERT INTO users (name, email, weight_kg) VALUES (%s, %s, %s)",
+                   (name, email, weight))
+    conn.commit()
+    st.success("✅ User added successfully!")
+
+# Show Users
+st.header("Users List")
+cursor.execute("SELECT * FROM users;")
+rows = cursor.fetchall()
+st.table(rows)
